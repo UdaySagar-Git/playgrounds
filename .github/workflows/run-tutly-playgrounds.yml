@@ -28,7 +28,7 @@ jobs:
         id: expose-tunnel
         uses: codetalkio/expose-tunnel@v1.5.0
         with:
-          service: bore.pub
+          service: localhost.run
           port: 4242
 
       - name: Show tunnel URL
