@@ -1,0 +1,36 @@
+name: Run Tutly Playgrounds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-playground:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create playground folder
+        run: mkdir -p playground
+
+      - name: Run tutly-playgrounds
+        run: npx tutly playground --directory="playground" &
+
+      - name: Expose with Expose Tunnel
+        id: expose-tunnel
+        uses: codetalkio/expose-tunnel@v1.5.0
+        with:
+          service: bore.pub
+          port: 4242
+
+      - name: Show tunnel URL
+        run: echo "Tunnel URL: ${{ steps.expose-tunnel.outputs.tunnel-url }}"
+
+      - name: Keep the workflow running
+        run: sleep 1800
