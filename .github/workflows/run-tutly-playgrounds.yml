@@ -20,7 +20,9 @@ jobs:
         run: mkdir -p playground
 
       - name: Run tutly-playgrounds
-        run: npx tutly playground --directory="playground" &
+        run: |
+          nohup npx tutly playground --directory="playground" > tutly.log 2>&1 &
+          sleep 5
 
       - name: Expose with Expose Tunnel
         id: expose-tunnel
@@ -31,6 +33,12 @@ jobs:
 
       - name: Show tunnel URL
         run: echo "Tunnel URL: ${{ steps.expose-tunnel.outputs.tunnel-url }}"
+
+      - name: Upload tutly log
+        uses: actions/upload-artifact@v4
+        with:
+          name: tutly-log
+          path: tutly.log
 
       - name: Keep the workflow running
         run: sleep 1800
