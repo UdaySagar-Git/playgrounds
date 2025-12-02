@@ -24,24 +24,34 @@ jobs:
           nohup npx tutly playground --directory="playground" > tutly.log 2>&1 &
           sleep 5
 
-      - name: Expose via localhost.run (ssh)
-        id: localhost-run
+      - name: Setup ngrok
+        if: ${{ secrets.NGROK_AUTH_TOKEN != '' }}
         run: |
-          nohup ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R 80:localhost:4242 ssh.localhost.run > localhost_run.log 2>&1 &
+          curl -sLo ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+          unzip -q ngrok.zip
+          chmod +x ngrok
+          ./ngrok authtoken "${{ secrets.NGROK_AUTH_TOKEN }}"
+
+      - name: Start ngrok tunnel
+        run: |
+          nohup ./ngrok http 4242 --log=stdout > ngrok.log 2>&1 &
           for i in {1..20}; do
-            if grep -Eo 'https?://[A-Za-z0-9._-]+\.localhost\.run' localhost_run.log >/dev/null 2>&1; then
+            url=$(curl -s http://127.0.0.1:4040/api/tunnels 2>/dev/null | sed -n 's/.*"public_url":"\([^"]*\)".*/\1/p' | head -n1)
+            if [ -n "$url" ]; then
+              echo "$url"
               break
             fi
             sleep 1
           done
-          # print only the first .localhost.run URL (if any)
-          grep -Eo 'https?://[A-Za-z0-9._-]+\.localhost\.run' localhost_run.log | head -n1 || echo "No public localhost.run URL found. See localhost_run.log"
+          if [ -z "$url" ]; then
+            echo "No ngrok public URL found. See ngrok.log"
+          fi
 
-      - name: Upload localhost_run log
+      - name: Upload ngrok log
         uses: actions/upload-artifact@v4
         with:
-          name: localhost-run-log
-          path: localhost_run.log
+          name: ngrok-log
+          path: ngrok.log
 
       - name: Upload tutly log
         uses: actions/upload-artifact@v4
