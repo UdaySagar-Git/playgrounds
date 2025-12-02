@@ -32,7 +32,8 @@ jobs:
           port: 4242
 
       - name: Show tunnel URL
-        run: echo "Tunnel URL: ${{ steps.expose-tunnel.outputs.tunnel-url }}"
+        run: |
+          echo "Tunnel URL: ${{ steps.expose-tunnel.outputs.tunnel-url }}"
 
       - name: Upload tutly log
         uses: actions/upload-artifact@v4
