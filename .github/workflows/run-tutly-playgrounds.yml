@@ -24,16 +24,17 @@ jobs:
           nohup npx tutly playground --directory="playground" > tutly.log 2>&1 &
           sleep 5
 
-      - name: Expose with Expose Tunnel
-        id: expose-tunnel
-        uses: codetalkio/expose-tunnel@v1.5.0
-        with:
-          service: localhost.run
-          port: 4242
-
-      - name: Show tunnel URL
+      - name: Expose via localhost.run (ssh)
+        id: localhost-run
         run: |
-          echo "Tunnel URL: ${{ steps.expose-tunnel.outputs.tunnel-url }}"
+          nohup ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R 80:localhost:4242 ssh.localhost.run > localhost_run.log 2>&1 &
+          for i in {1..20}; do
+            if grep -Eo 'https?://[^[:space:]]+' localhost_run.log >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          grep -Eo 'https?://[^[:space:]]+' localhost_run.log || echo "No public URL found yet. See localhost_run.log"
 
       - name: Upload tutly log
         uses: actions/upload-artifact@v4
