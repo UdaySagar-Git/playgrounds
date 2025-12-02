@@ -25,12 +25,15 @@ jobs:
           sleep 5
 
       - name: Setup ngrok
-        if: ${{ secrets.NGROK_AUTH_TOKEN != '' }}
         run: |
           curl -sLo ngrok.zip https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
           unzip -q ngrok.zip
           chmod +x ngrok
-          ./ngrok authtoken "${{ secrets.NGROK_AUTH_TOKEN }}"
+          if [ -n "${{ secrets.NGROK_AUTH_TOKEN }}" ]; then
+            ./ngrok authtoken "${{ secrets.NGROK_AUTH_TOKEN }}"
+          else
+            echo "NGROK_AUTH_TOKEN not set; continuing without authtoken"
+          fi
 
       - name: Start ngrok tunnel
         run: |
