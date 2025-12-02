@@ -29,12 +29,19 @@ jobs:
         run: |
           nohup ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R 80:localhost:4242 ssh.localhost.run > localhost_run.log 2>&1 &
           for i in {1..20}; do
-            if grep -Eo 'https?://[^[:space:]]+' localhost_run.log >/dev/null 2>&1; then
+            if grep -Eo 'https?://[A-Za-z0-9._-]+\.localhost\.run' localhost_run.log >/dev/null 2>&1; then
               break
             fi
             sleep 1
           done
-          grep -Eo 'https?://[^[:space:]]+' localhost_run.log || echo "No public URL found yet. See localhost_run.log"
+          # print only the first .localhost.run URL (if any)
+          grep -Eo 'https?://[A-Za-z0-9._-]+\.localhost\.run' localhost_run.log | head -n1 || echo "No public localhost.run URL found. See localhost_run.log"
+
+      - name: Upload localhost_run log
+        uses: actions/upload-artifact@v4
+        with:
+          name: localhost-run-log
+          path: localhost_run.log
 
       - name: Upload tutly log
         uses: actions/upload-artifact@v4
